@@ -177,21 +177,35 @@ def gen_taskset(periods, period_distribution, tasks_n, utilization,
     return ts
 
 def gen_tasksets(options):
+
     x = StaffordRandFixedSum(options.n, options.util, 1)
     periods = gen_periods(options.n, 1, options.permin, options.permax, options.pergran, options.perdist)
     ts = TaskSystem()
 
     C = x[0] * periods[0]
+
+
     if options.round_C:
         C = numpy.round(C, decimals=0)
     elif options.floor_C:
         C = numpy.floor(C)
 
+
+    #prevents the case of 0 execution cost (von mir bearbeitet)
+    adjustment_count = 0
+    for i in range(len(C)):
+        if C[i] < 1:
+            C[i] = 1
+            adjustment_count += 1
+        elif C[i] > 1 and C[i] > adjustment_count and adjustment_count > 0 :
+            C[i] = C[i] - adjustment_count
+            adjustment_count = 0
+
     taskset = numpy.c_[x[0], C / periods[0], periods[0], C]
     for t in range(numpy.size(taskset,0)):
-        ts.append(SporadicTask(taskset[t][3], taskset[t][2]))
+        ts.append(SporadicTask(int(taskset[t][3]), int(taskset[t][2]), None, t))
 
-#    print ts
+
     return ts
 
 def print_taskset(taskset, format):

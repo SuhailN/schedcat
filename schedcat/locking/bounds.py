@@ -201,17 +201,25 @@ def apply_suspension_oblivious(all_tasks, res):
         # instead, charge it all as execution cost
         t.cost     += t.sob_blocked
 
-def apply_global_fmlp_sob_bounds(all_tasks):
-    model = get_cpp_model(all_tasks)
+############## Von mir modifiziert #################
+def apply_global_fmlp_sob_bounds(all_tasks, use_task_period=False):
+    if use_task_period:
+        model = get_cpp_model(all_tasks, True)
+    else:
+        model = get_cpp_model(all_tasks)
     res = cpp.global_fmlp_bounds(model)
     apply_suspension_oblivious(all_tasks, res)
     return res
 
-def apply_global_omlp_bounds(all_tasks, num_cpus):
-    model = get_cpp_model(all_tasks)
+def apply_global_omlp_bounds(all_tasks, num_cpus, use_task_period=False):
+    if use_task_period:
+        model = get_cpp_model(all_tasks, True)
+    else:
+        model = get_cpp_model(all_tasks)
     res = cpp.global_omlp_bounds(model, num_cpus)
     apply_suspension_oblivious(all_tasks, res)
     return res
+####################################################
 
 def apply_clustered_omlp_bounds(all_tasks, procs_per_cluster,
                                 dedicated_irq=cpp.NO_CPU):
